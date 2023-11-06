@@ -1,0 +1,197 @@
+<?php
+$servername = "localhost";
+$username = "username";
+$password = "password";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password);
+
+// Check connection
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+
+// Create database
+$sql = "CREATE DATABASE myDB";
+if ($conn->query($sql) === TRUE) {
+  echo "Database created successfully\n";
+} else {
+  echo "Error creating database: " . $conn->error . "\n";
+}
+
+// Connect to database
+$conn = new mysqli($servername, $username, $password, "myDB");
+
+// Check connection
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+
+// Create Customers table
+$sql = "CREATE TABLE Customers (
+  CustomerID INT PRIMARY KEY,
+  Name VARCHAR(255),
+  Email VARCHAR(255),
+  Location VARCHAR(255)
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Customers created successfully\n";
+} else {
+  echo "Error creating table: " . $conn->error . "\n";
+}
+
+// Populate the Customers table
+
+INSERT INTO Customers (CustomerID, Name, Email, Location)
+VALUES (1, 'John Doe', 'johndoe@example.com', 'New York');
+
+INSERT INTO Customers (CustomerID, Name, Email, Location)
+VALUES (2, 'Jane Smith', 'janesmith@example.com', 'Los Angeles');
+
+INSERT INTO Customers (CustomerID, Name, Email, Location)
+VALUES (3, 'Bob Johnson', 'bobjohnson@example.com', 'Chicago');
+
+// Create Orders table
+$sql = "CREATE TABLE Orders (
+  OrderID INT PRIMARY KEY,
+  CustomerID INT,
+  OrderDate DATE,
+  TotalAmount DECIMAL(10, 2),
+  FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Orders created successfully\n";
+} else {
+  echo "Error creating table: " . $conn->error . "\n";
+}
+
+// Populate the Orders table
+
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, TotalAmount)
+VALUES (1, 1, '2023-11-06', 100.00);
+
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, TotalAmount)
+VALUES (2, 2, '2023-11-07', 200.00);
+
+INSERT INTO Orders (OrderID, CustomerID, OrderDate, TotalAmount)
+VALUES (3, 3, '2023-11-08', 300.00);
+
+// Create Products table
+$sql = "CREATE TABLE Products (
+  ProductID INT PRIMARY KEY,
+  Name VARCHAR(255),
+  Description TEXT,
+  Price DECIMAL(10, 2)
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Products created successfully\n";
+} else {
+  echo "Error creating table: " . $conn->error . "\n";
+}
+
+// Populate the Products table
+
+INSERT INTO Products (ProductID, Name, Description, Price)
+VALUES (1, 'Product 1', 'Description of product 1', 10.00);
+
+INSERT INTO Products (ProductID, Name, Description, Price)
+VALUES (2, 'Product 2', 'Description of product 2', 20.00);
+
+INSERT INTO Products (ProductID, Name, Description, Price)
+VALUES (3, 'Product 3', 'Description of product 3', 30.00);
+
+// Create Categories table
+$sql = "CREATE TABLE Categories (
+  CategoryID INT PRIMARY KEY,
+  Name VARCHAR(255)
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Categories created successfully\n";
+} else {
+  echo "Error creating table: " . $conn->error . "\n";
+}
+
+// Populate the categories table
+
+INSERT INTO Categories (CategoryID, Name)
+VALUES (1, 'Category 1');
+
+INSERT INTO Categories (CategoryID, Name)
+VALUES (2, 'Category 2');
+
+INSERT INTO Categories (CategoryID, Name)
+VALUES (3, 'Category 3');
+
+// Create Order_Items table
+$sql = "CREATE TABLE Order_Items (
+  OrderItemID INT PRIMARY KEY,
+  OrderID INT,
+  ProductID INT,
+  Quantity INT,
+  UnitPrice DECIMAL(10, 2),
+  FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+  FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+)";
+
+if ($conn->query($sql) === TRUE) {
+  echo "Table Order_Items created successfully\n";
+} else {
+  echo "Error creating table: " . $conn->error . "\n";
+}
+
+// Populate the Order_Items table
+
+INSERT INTO Order_Items (OrderItemID, OrderID, ProductID, Quantity, UnitPrice)
+VALUES (1, 1, 1, 2, 10.00);
+
+INSERT INTO Order_Items (OrderItemID, OrderID, ProductID, Quantity, UnitPrice)
+VALUES (2, 1, 2, 1, 20.00);
+
+INSERT INTO Order_Items (OrderItemID, OrderID, ProductID, Quantity, UnitPrice)
+VALUES (3, 2, 3, 3, 30.00);
+
+$conn->close();
+?>
+
+
+/* Task 1. SQL query to retrieve all the customer information along with the total number of orders placed by each customer. Display the result in descending order of the number of orders. */
+
+SELECT Customers.*, COUNT(Orders.OrderID) AS TotalOrders
+FROM Customers
+LEFT JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+GROUP BY Customers.CustomerID
+ORDER BY TotalOrders DESC;
+
+/* Task 2. SQL query to retrieve the product name, quantity, and total amount for each order item. Display the result in ascending order of the order ID. */
+
+
+
+SELECT Products.Name, Order_Items.Quantity, Order_Items.UnitPrice * Order_Items.Quantity AS TotalAmount
+FROM Order_Items
+JOIN Products ON Order_Items.ProductID = Products.ProductID
+ORDER BY Order_Items.OrderID ASC;
+
+/* Task 3. SQL query to retrieve the total revenue generated by each product category. Display the category name along with the total revenue in descending order of the revenue. */
+
+
+SELECT Categories.Name, SUM(Order_Items.Quantity * Order_Items.UnitPrice) AS TotalRevenue
+FROM Categories
+JOIN Products ON Categories.CategoryID = Products.CategoryID
+JOIN Order_Items ON Products.ProductID = Order_Items.ProductID
+GROUP BY Categories.Name
+ORDER BY TotalRevenue DESC;
+
+/* Task_4. SQL query to retrieve the top 5 customers who have made the highest total purchase amount. Display the customer name along with the total purchase amount in descending order of the purchase amount. */
+
+
+SELECT Customers.Name, SUM(Order_Items.Quantity * Order_Items.UnitPrice) AS TotalPurchaseAmount
+FROM Customers
+JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+JOIN Order_Items ON Orders.OrderID = Order_Items.OrderID
+GROUP BY Customers.Name
+ORDER BY TotalPurchaseAmount DESC
+LIMIT 5;
