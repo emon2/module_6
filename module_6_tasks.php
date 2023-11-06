@@ -99,6 +99,16 @@ if ($conn->query($sql) === TRUE) {
   echo "Error creating table: " . $conn->error . "\n";
 }
 
+$sql = file_get_contents('module_6_tasks.sql');
+
+// Execute SQL statements
+if (mysqli_multi_query($conn, $sql)) {
+  echo "SQL statements executed successfully";
+} else {
+  echo "Error executing SQL statements: " . mysqli_error($conn);
+}
+
+
 $conn->close();
 ?>
 
